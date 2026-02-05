@@ -1,0 +1,15 @@
+{
+  "name": "focusflow-habit-tracker",
+  "version": "1.0.0",
+  "description": "FocusFlow is a simple habit and routine tracker with weekly insights.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.22.1",
+    "mongodb": "^6.3.0"
+  }
+}

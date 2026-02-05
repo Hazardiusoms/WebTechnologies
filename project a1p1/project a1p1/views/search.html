@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search • FocusFlow</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a class="nav__brand" href="/">FocusFlow</a>
+      <div class="nav__links">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+        <a href="/search">Search</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h1>Search Habits</h1>
+      <p class="muted">Search for habits and routines using the query parameter <code>?q=</code></p>
+      
+      <form method="GET" action="/search" style="margin-top: 20px;">
+        <label>
+          Search Query
+          <input type="text" name="q" placeholder="Enter search term..." style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.02); color: var(--text); margin-top: 6px;" />
+        </label>
+        <div style="margin-top: 12px;">
+          <button type="submit" class="button primary">Search</button>
+        </div>
+      </form>
+
+      <div id="search-results" style="margin-top: 24px;">
+        <p class="muted">Enter a search query above to see results.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>This route demonstrates query parameter handling: <code>/search?q=&lt;query&gt;</code></p>
+  </footer>
+
+  <script>
+    // Display query parameter if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get('q');
+    const resultsDiv = document.getElementById('search-results');
+    
+    if (query && query.trim() !== '') {
+      resultsDiv.innerHTML = `
+        <h2>Search Results for: "${query}"</h2>
+        <p class="muted">This is a placeholder page demonstrating query parameter handling.</p>
+        <p>Query parameter received: <code>q=${query}</code></p>
+        <p>In a real application, this would display search results for habits matching "${query}".</p>
+      `;
+    } else {
+      resultsDiv.innerHTML = `
+        <p class="muted">Enter a search query above to see results.</p>
+        <p class="muted" style="margin-top: 12px; padding: 12px; background: rgba(255, 0, 0, 0.1); border: 1px solid rgba(255, 0, 0, 0.3); border-radius: 8px;">
+          <strong>Note:</strong> Missing query parameter "q" will return HTTP status 400.
+        </p>
+      `;
+    }
+  </script>
+</body>
+</html>

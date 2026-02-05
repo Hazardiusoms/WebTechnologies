@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FocusFlow | Habit & Routine Tracker</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a class="nav__brand" href="/">FocusFlow</a>
+      <div class="nav__links">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+        <a href="/search">Search</a>
+      </div>
+    </nav>
+  </header>
+  <header class="hero">
+    <div class="hero__content">
+      <p class="badge">Week 1 • Express Setup</p>
+      <h1>FocusFlow</h1>
+      <p class="subtitle">A simple habit and routine tracker that helps you stay consistent with clear weekly insights.</p>
+      <div class="cta-row">
+        <a class="button primary" href="#">Get Started</a>
+        <a class="button ghost" href="#">View Roadmap</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Team</h2>
+      <p class="muted">Group Project. SE-2425. Web Technologies "Backend"</p>
+      <ul>
+        <li>Nursalim Onalbayev - SE-2425</li>
+        <li>Zhalgas Torekeldi - SE-2425</li>
+        <li>Alisher Akhmet - SE-2425</li>
+      </ul>
+    </section>
+
+    <section class="card grid two-col">
+      <div>
+        <h2>What FocusFlow Will Do</h2>
+        <p>Track daily and weekly habits, visualize streaks, and surface insights that keep you motivated.</p>
+        <ul class="feature-list">
+          <li>Daily checklist with streak tracking</li>
+          <li>Weekly summary with charts</li>
+          <li>Reminders for high-priority habits</li>
+          <li>Simple sharing of progress</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Planned Features</h2>
+        <ol class="roadmap">
+          <li><strong>Week 1:</strong> Express setup, landing page, basic styling</li>
+          <li><strong>Week 2:</strong> Habit form + POST route to store entries</li>
+          <li><strong>Week 3:</strong> Connect to database for persistence</li>
+          <li><strong>Week 4:</strong> Auth & personalized dashboards</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Why FocusFlow?</h2>
+      <p>Consistency is easier when the feedback loop is short. FocusFlow makes it effortless to log routines, spot gaps, and celebrate wins every week.</p>
+    </section>
+
+    <section class="card">
+      <h2>API Testing Links</h2>
+      <p>Quick test links for the Habits CRUD API:</p>
+      
+      <h3>Basic CRUD Operations</h3>
+      <ul>
+        <li><a href="/api/habits" target="_blank">GET /api/habits</a> - Get all habits</li>
+        <li><a href="/api/info" target="_blank">GET /api/info</a> - Project information</li>
+      </ul>
+      <p class="muted"><strong>Note:</strong> To test GET /api/habits/:id, POST, PUT, and DELETE operations, use tools like Postman, curl, or the browser console.</p>
+      
+      <h3>Filtering Examples</h3>
+      <ul>
+        <li><a href="/api/habits?filter=%7B%22title%22%3A%22Exercise%22%7D" target="_blank">GET /api/habits?filter={"title":"Exercise"}</a> - Filter by title</li>
+        <li><a href="/api/habits?filter=%7B%22title%22%3A%7B%22%24regex%22%3A%22.*%22%2C%22%24options%22%3A%22i%22%7D%7D" target="_blank">GET /api/habits?filter={"title":{"$regex":".*","$options":"i"}}</a> - Filter with regex</li>
+      </ul>
+      
+      <h3>Sorting Examples</h3>
+      <ul>
+        <li><a href="/api/habits?sort=%7B%22title%22%3A1%7D" target="_blank">GET /api/habits?sort={"title":1}</a> - Sort by title ascending</li>
+        <li><a href="/api/habits?sort=%7B%22created_at%22%3A-1%7D" target="_blank">GET /api/habits?sort={"created_at":-1}</a> - Sort by created_at descending</li>
+      </ul>
+      
+      <h3>Projection Examples</h3>
+      <ul>
+        <li><a href="/api/habits?projection=%7B%22title%22%3A1%2C%22description%22%3A1%7D" target="_blank">GET /api/habits?projection={"title":1,"description":1}</a> - Get only title and description</li>
+        <li><a href="/api/habits?projection=%7B%22title%22%3A1%7D" target="_blank">GET /api/habits?projection={"title":1}</a> - Get only title</li>
+      </ul>
+      
+      <h3>Combined Examples</h3>
+      <ul>
+        <li><a href="/api/habits?filter=%7B%7D&sort=%7B%22title%22%3A1%7D&projection=%7B%22title%22%3A1%2C%22description%22%3A1%7D" target="_blank">GET /api/habits?filter={}&sort={"title":1}&projection={"title":1,"description":1}</a> - Combined filter, sort, and projection</li>
+      </ul>
+      
+      <h3>Testing POST, PUT, DELETE</h3>
+      <p class="muted">Use curl or Postman to test these operations:</p>
+      <pre style="background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto;">
+<code># POST - Create a new habit
+curl -X POST http://localhost:3000/api/habits \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Exercise","description":"30 minutes daily"}'
+
+# PUT - Update a habit (replace ID with actual ObjectId)
+curl -X PUT http://localhost:3000/api/habits/&lt;ID&gt; \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Exercise","description":"45 minutes daily"}'
+
+# DELETE - Delete a habit (replace ID with actual ObjectId)
+curl -X DELETE http://localhost:3000/api/habits/&lt;ID&gt;</code></pre>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Server: Express.js • Served at <code>/</code></p>
+  </footer>
+</body>
+</html>
