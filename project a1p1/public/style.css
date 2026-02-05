@@ -189,6 +189,211 @@ code {
   background: rgba(255,255,255,0.02);
 }
 
+/* Hero section */
+.hero-section {
+  text-align: center;
+  padding: 32px 0;
+  margin-bottom: 8px;
+}
+
+.hero-section h1 {
+  margin: 0 0 8px;
+  font-size: 42px;
+}
+
+.hero-section .subtitle {
+  color: var(--muted);
+  font-size: 18px;
+  margin: 0;
+}
+
+/* Habit form */
+.habit-form {
+  margin-top: 16px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255,255,255,0.04);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.button.small {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.button.delete-btn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.button.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.button.edit-btn {
+  background: rgba(56, 189, 248, 0.1);
+  color: var(--accent);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.button.edit-btn:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+/* Habits table */
+.habits-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.habits-table thead {
+  background: rgba(255,255,255,0.02);
+}
+
+.habits-table th {
+  text-align: left;
+  padding: 12px 14px;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.habits-table td {
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.habits-table tbody tr:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.habits-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.actions-cell {
+  white-space: nowrap;
+}
+
+.actions-cell .button {
+  margin-right: 8px;
+}
+
+.actions-cell .button:last-child {
+  margin-right: 0;
+}
+
+/* Loading, error, and empty states */
+.loading {
+  text-align: center;
+  padding: 32px;
+  color: var(--muted);
+}
+
+.error-message {
+  padding: 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #fca5a5;
+  margin-top: 16px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--muted);
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* Flash messages */
+.flash-message {
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+}
+
+.flash-message.success {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #86efac;
+}
+
+.flash-message.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Contact form */
 .contact-form label {
   display: block;
@@ -208,3 +413,30 @@ code {
 }
 .contact-form textarea { resize: vertical; }
 
+/* Responsive design */
+@media (max-width: 768px) {
+  .habits-table {
+    font-size: 14px;
+  }
+  
+  .habits-table th,
+  .habits-table td {
+    padding: 10px 8px;
+  }
+  
+  .habits-table th:nth-child(1),
+  .habits-table td:nth-child(1) {
+    display: none;
+  }
+  
+  .actions-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .actions-cell .button {
+    width: 100%;
+    margin-right: 0;
+  }
+}
