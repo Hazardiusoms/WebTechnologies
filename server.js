@@ -19,20 +19,21 @@ app.use(express.json());
 // Session configuration with secure cookies
 app.use(session({
   secret: process.env.SESSION_SECRET || 'focusflow-secret-key-change-in-production',
-  resave: false,
-  saveUninitialized: false,
+  resave: true, // Changed to true to ensure session is saved
+  saveUninitialized: true, // Changed to true to create session immediately
   cookie: {
     httpOnly: true, // Required: prevents JavaScript access to cookie
     secure: process.env.NODE_ENV === 'production', // Recommended: only send over HTTPS in production
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'strict' // CSRF protection
+    sameSite: 'lax', // Changed to 'lax' to allow cookies on redirects (still secure)
+    path: '/' // Ensure cookie is available for all paths
   },
   name: 'sessionId' // Custom session cookie name
 }));
 
 // Custom logger middleware - logs HTTP method and URL
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
+  console.log(`${req.method} ${req.url} - Session ID: ${req.sessionID}`);
   next();
 });
 
@@ -149,6 +150,9 @@ app.post('/api/login', async (req, res) => {
     // Create session
     req.session.userId = user._id.toString();
     req.session.username = user.username;
+    
+    console.log('Session created - User ID:', user._id.toString(), 'Session ID:', req.sessionID);
+    console.log('Session data:', JSON.stringify(req.session));
 
     // Save session before sending response
     req.session.save((err) => {
@@ -157,12 +161,15 @@ app.post('/api/login', async (req, res) => {
         return res.status(500).json({ error: 'Internal server error' });
       }
       
+      console.log('Session saved successfully - Session ID:', req.sessionID);
+      
       res.status(200).json({ 
         message: 'Login successful',
         user: {
           username: user.username,
           email: user.email
-        }
+        },
+        sessionId: req.sessionID // Include session ID for debugging
       });
     });
   } catch (error) {
@@ -185,6 +192,13 @@ app.post('/api/logout', (req, res) => {
 
 // GET /api/auth/status - Check authentication status
 app.get('/api/auth/status', (req, res) => {
+  // Debug logging
+  console.log('Auth status check - Session ID:', req.sessionID);
+  console.log('Auth status check - Session exists:', !!req.session);
+  console.log('Auth status check - Session userId:', req.session?.userId);
+  console.log('Auth status check - Session username:', req.session?.username);
+  console.log('Auth status check - Full session:', JSON.stringify(req.session));
+  
   if (req.session && req.session.userId) {
     res.status(200).json({ 
       authenticated: true,

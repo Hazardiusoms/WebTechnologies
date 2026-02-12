@@ -83,8 +83,14 @@
         const data = await response.json();
 
         if (response.ok) {
-          // Login successful - redirect to home
-          window.location.href = '/';
+          // Login successful - check if we got a session ID
+          console.log('Login response:', data);
+          
+          // Wait a moment to ensure cookie is set, then redirect
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+          // Force a hard reload to ensure cookies are sent
+          window.location.replace('/');
         } else {
           // Show error message
           errorMessage.textContent = data.error || 'Login failed. Please try again.';
