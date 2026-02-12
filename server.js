@@ -8,6 +8,9 @@ const { habitsDb, usersDb } = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy for Render.com and other hosting platforms (they use reverse proxies)
+app.set('trust proxy', 1);
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Parse URL-encoded form bodies
@@ -17,15 +20,18 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Session configuration with secure cookies
+// Session configuration with secure cookies
 app.use(session({
   secret: process.env.SESSION_SECRET || 'focusflow-secret-key-change-in-production',
-  resave: true, // Changed to true to ensure session is saved
-  saveUninitialized: true, // Changed to true to create session immediately
+  resave: false,
+  saveUninitialized: false, // Only save sessions that have been modified
   cookie: {
     httpOnly: true, // Required: prevents JavaScript access to cookie
-    secure: process.env.NODE_ENV === 'production', // Recommended: only send over HTTPS in production
+    // In production with trust proxy, req.secure will be true for HTTPS
+    // For now, set to false to ensure cookies work (Render uses HTTPS but proxy might not forward it correctly)
+    secure: false, // Set to false to ensure cookies work - can enable later if needed
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'lax', // Changed to 'lax' to allow cookies on redirects (still secure)
+    sameSite: 'lax', // Allow cookies on redirects (still secure)
     path: '/' // Ensure cookie is available for all paths
   },
   name: 'sessionId' // Custom session cookie name
@@ -34,6 +40,7 @@ app.use(session({
 // Custom logger middleware - logs HTTP method and URL
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url} - Session ID: ${req.sessionID}`);
+  console.log('Cookies received:', req.headers.cookie || 'No cookies');
   next();
 });
 
@@ -147,14 +154,18 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Create session
+    // Create session - modify session to trigger save
     req.session.userId = user._id.toString();
     req.session.username = user.username;
     
     console.log('Session created - User ID:', user._id.toString(), 'Session ID:', req.sessionID);
-    console.log('Session data:', JSON.stringify(req.session));
-
-    // Save session before sending response
+    console.log('Session data before save:', JSON.stringify(req.session));
+    
+    // Force session to be saved by touching it
+    req.session.touch();
+    
+    // The session will be automatically saved at the end of the request
+    // But we can also explicitly save it
     req.session.save((err) => {
       if (err) {
         console.error('Error saving session:', err);
@@ -162,14 +173,14 @@ app.post('/api/login', async (req, res) => {
       }
       
       console.log('Session saved successfully - Session ID:', req.sessionID);
+      console.log('Session data after save:', JSON.stringify(req.session));
       
       res.status(200).json({ 
         message: 'Login successful',
         user: {
           username: user.username,
           email: user.email
-        },
-        sessionId: req.sessionID // Include session ID for debugging
+        }
       });
     });
   } catch (error) {
