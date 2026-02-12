@@ -150,12 +150,20 @@ app.post('/api/login', async (req, res) => {
     req.session.userId = user._id.toString();
     req.session.username = user.username;
 
-    res.status(200).json({ 
-      message: 'Login successful',
-      user: {
-        username: user.username,
-        email: user.email
+    // Save session before sending response
+    req.session.save((err) => {
+      if (err) {
+        console.error('Error saving session:', err);
+        return res.status(500).json({ error: 'Internal server error' });
       }
+      
+      res.status(200).json({ 
+        message: 'Login successful',
+        user: {
+          username: user.username,
+          email: user.email
+        }
+      });
     });
   } catch (error) {
     console.error('Error during login:', error);
