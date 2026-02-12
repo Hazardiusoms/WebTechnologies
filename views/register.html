@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register • FocusFlow</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a class="nav__brand" href="/">FocusFlow</a>
+      <div class="nav__links">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+        <a href="/search">Search</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card" style="max-width: 400px; margin: 64px auto;">
+      <h2>Create Account</h2>
+      <p class="muted" style="margin-bottom: 24px;">Register a new account to start tracking your habits.</p>
+      
+      <div id="error-message" class="error-message" style="display: none; margin-bottom: 16px;"></div>
+      <div id="success-message" class="flash-message success" style="display: none; margin-bottom: 16px;"></div>
+      
+      <form id="register-form" class="habit-form">
+        <div class="form-group">
+          <label for="username">Username *</label>
+          <input type="text" id="username" name="username" required placeholder="Choose a username" autocomplete="username" minlength="3" />
+        </div>
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input type="email" id="email" name="email" required placeholder="your@email.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password *</label>
+          <input type="password" id="password" name="password" required placeholder="At least 6 characters" autocomplete="new-password" minlength="6" />
+        </div>
+        <div class="form-group">
+          <label for="confirm-password">Confirm Password *</label>
+          <input type="password" id="confirm-password" name="confirm-password" required placeholder="Confirm your password" autocomplete="new-password" minlength="6" />
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="button primary" id="submit-btn">Register</button>
+        </div>
+      </form>
+      
+      <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border);">
+        <p class="muted" style="font-size: 0.9em;">
+          Already have an account? <a href="/login" style="color: var(--accent);">Login here</a>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>FocusFlow • Habit Tracker • Assignment 4</p>
+  </footer>
+
+  <script>
+    // Handle form submission
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      const submitBtn = document.getElementById('submit-btn');
+      const errorMessage = document.getElementById('error-message');
+      const successMessage = document.getElementById('success-message');
+      const originalText = submitBtn.textContent;
+
+      // Clear previous messages
+      errorMessage.style.display = 'none';
+      errorMessage.textContent = '';
+      successMessage.style.display = 'none';
+      successMessage.textContent = '';
+
+      // Validate passwords match
+      if (password !== confirmPassword) {
+        errorMessage.textContent = 'Passwords do not match';
+        errorMessage.style.display = 'block';
+        return;
+      }
+
+      // Validate password length
+      if (password.length < 6) {
+        errorMessage.textContent = 'Password must be at least 6 characters';
+        errorMessage.style.display = 'block';
+        return;
+      }
+
+      try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Registering...';
+
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Registration successful
+          successMessage.textContent = 'Account created successfully! Redirecting to login...';
+          successMessage.style.display = 'block';
+          
+          // Redirect to login after 2 seconds
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 2000);
+        } else {
+          // Show error message
+          errorMessage.textContent = data.error || 'Registration failed. Please try again.';
+          errorMessage.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        errorMessage.textContent = 'An error occurred. Please try again.';
+        errorMessage.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+  </script>
+</body>
+</html>

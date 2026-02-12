@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login • FocusFlow</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a class="nav__brand" href="/">FocusFlow</a>
+      <div class="nav__links">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+        <a href="/search">Search</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card" style="max-width: 400px; margin: 64px auto;">
+      <h2>Login to FocusFlow</h2>
+      <p class="muted" style="margin-bottom: 24px;">Please login to create, update, or delete habits.</p>
+      
+      <div id="error-message" class="error-message" style="display: none; margin-bottom: 16px;"></div>
+      
+      <form id="login-form" class="habit-form">
+        <div class="form-group">
+          <label for="username">Username *</label>
+          <input type="text" id="username" name="username" required placeholder="Enter your username" autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password *</label>
+          <input type="password" id="password" name="password" required placeholder="Enter your password" autocomplete="current-password" />
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="button primary" id="submit-btn">Login</button>
+        </div>
+      </form>
+      
+      <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border);">
+        <p class="muted" style="font-size: 0.9em;">
+          Don't have an account? <a href="/register" style="color: var(--accent);">Register here</a>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>FocusFlow • Habit Tracker • Assignment 4</p>
+  </footer>
+
+  <script>
+    // Handle form submission
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const submitBtn = document.getElementById('submit-btn');
+      const errorMessage = document.getElementById('error-message');
+      const originalText = submitBtn.textContent;
+
+      // Clear previous errors
+      errorMessage.style.display = 'none';
+      errorMessage.textContent = '';
+
+      try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Logging in...';
+
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Login successful - redirect to home
+          window.location.href = '/';
+        } else {
+          // Show error message
+          errorMessage.textContent = data.error || 'Login failed. Please try again.';
+          errorMessage.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        errorMessage.textContent = 'An error occurred. Please try again.';
+        errorMessage.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+  </script>
+</body>
+</html>

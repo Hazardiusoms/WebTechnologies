@@ -1,4 +1,5 @@
 const { MongoClient } = require('mongodb');
+const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 // MongoDB connection URI from environment variable
@@ -28,10 +29,13 @@ async function connectDatabase() {
     const dbName = getDatabaseName(MONGO_URI);
     db = client.db(dbName);
     
-    // Create collection if it doesn't exist and ensure indexes
+    // Create collections if they don't exist and ensure indexes
     const habitsCollection = db.collection('habits');
+    const usersCollection = db.collection('users');
     try {
       await habitsCollection.createIndex({ id: 1 }, { unique: true });
+      await usersCollection.createIndex({ username: 1 }, { unique: true });
+      await usersCollection.createIndex({ email: 1 }, { unique: true });
     } catch (indexError) {
       // Index might already exist, ignore
       if (!indexError.message.includes('already exists')) {
@@ -74,8 +78,8 @@ const habitsDb = {
     }
   },
 
-  // Create a new habit
-  async create(title, description) {
+  // Create a new habit with expanded fields
+  async create(habitData) {
     try {
       const { db } = await connectDatabase();
       const collection = db.collection('habits');
@@ -86,9 +90,17 @@ const habitsDb = {
       
       const newHabit = {
         id: nextId,
-        title: title.trim(),
-        description: description.trim(),
-        created_at: new Date().toISOString()
+        title: habitData.title.trim(),
+        description: habitData.description.trim(),
+        category: habitData.category || 'General',
+        frequency: habitData.frequency || 'Daily',
+        priority: habitData.priority || 'Medium',
+        status: habitData.status || 'Active',
+        target_date: habitData.target_date || null,
+        streak: habitData.streak || 0,
+        notes: habitData.notes || '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
       
       await collection.insertOne(newHabit);
@@ -98,18 +110,28 @@ const habitsDb = {
     }
   },
 
-  // Update a habit by id
-  async update(id, title, description) {
+  // Update a habit by id with expanded fields
+  async update(id, habitData) {
     try {
       const { db } = await connectDatabase();
+      const updateFields = {
+        title: habitData.title.trim(),
+        description: habitData.description.trim(),
+        updated_at: new Date().toISOString()
+      };
+      
+      // Add optional fields if provided
+      if (habitData.category !== undefined) updateFields.category = habitData.category;
+      if (habitData.frequency !== undefined) updateFields.frequency = habitData.frequency;
+      if (habitData.priority !== undefined) updateFields.priority = habitData.priority;
+      if (habitData.status !== undefined) updateFields.status = habitData.status;
+      if (habitData.target_date !== undefined) updateFields.target_date = habitData.target_date;
+      if (habitData.streak !== undefined) updateFields.streak = parseInt(habitData.streak) || 0;
+      if (habitData.notes !== undefined) updateFields.notes = habitData.notes.trim();
+      
       const result = await db.collection('habits').updateOne(
         { id: parseInt(id) },
-        { 
-          $set: { 
-            title: title.trim(), 
-            description: description.trim() 
-          } 
-        }
+        { $set: updateFields }
       );
       return result.modifiedCount > 0;
     } catch (error) {
@@ -138,4 +160,74 @@ process.on('SIGINT', async () => {
   }
 });
 
-module.exports = { habitsDb };
+// User management operations
+const usersDb = {
+  // Create a new user with hashed password
+  async create(username, email, password) {
+    try {
+      const { db } = await connectDatabase();
+      const collection = db.collection('users');
+      
+      // Check if user already exists
+      const existingUser = await collection.findOne({
+        $or: [{ username: username.trim() }, { email: email.trim().toLowerCase() }]
+      });
+      
+      if (existingUser) {
+        throw new Error('User already exists');
+      }
+      
+      // Hash password with bcrypt
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      
+      const newUser = {
+        username: username.trim(),
+        email: email.trim().toLowerCase(),
+        password: hashedPassword,
+        created_at: new Date().toISOString()
+      };
+      
+      await collection.insertOne(newUser);
+      
+      // Return user without password
+      const { password: _, ...userWithoutPassword } = newUser;
+      return userWithoutPassword;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Find user by username
+  async findByUsername(username) {
+    try {
+      const { db } = await connectDatabase();
+      const user = await db.collection('users').findOne({ username: username.trim() });
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Find user by email
+  async findByEmail(email) {
+    try {
+      const { db } = await connectDatabase();
+      const user = await db.collection('users').findOne({ email: email.trim().toLowerCase() });
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Verify password
+  async verifyPassword(user, password) {
+    try {
+      return await bcrypt.compare(password, user.password);
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
+module.exports = { habitsDb, usersDb };

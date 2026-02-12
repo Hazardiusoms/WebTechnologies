@@ -4,7 +4,8 @@
   "description": "FocusFlow is a simple habit and routine tracker with weekly insights.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "seed": "node seed.js"
   },
   "author": "",
   "license": "ISC",

@@ -15,6 +15,9 @@
         <a href="/about">About</a>
         <a href="/contact">Contact</a>
         <a href="/search">Search</a>
+        <span id="auth-links">
+          <a href="/login" id="login-link">Login</a>
+        </span>
       </div>
     </nav>
   </header>
@@ -25,19 +28,88 @@
       <p class="subtitle">Track your habits and routines with clear weekly insights</p>
     </section>
 
+    <!-- Authentication Status -->
+    <div id="auth-status" class="card" style="display: none; margin-bottom: 24px;">
+      <p id="auth-message"></p>
+    </div>
+
     <!-- Create Habit Form -->
     <section class="card">
       <h2 id="form-title">Create New Habit</h2>
+      <div id="auth-required-message" class="error-message" style="display: none; margin-bottom: 16px;">
+        <strong>Authentication Required:</strong> Please <a href="/login" style="color: var(--accent);">login</a> to create, update, or delete habits.
+      </div>
       <form id="habit-form" class="habit-form">
         <input type="hidden" id="habit-id" name="id" />
-        <div class="form-group">
-          <label for="title">Title *</label>
-          <input type="text" id="title" name="title" required placeholder="e.g., Morning Exercise" />
+        
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label for="title">Title *</label>
+            <input type="text" id="title" name="title" required placeholder="e.g., Morning Exercise" />
+          </div>
+          <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" name="category">
+              <option value="General">General</option>
+              <option value="Health">Health</option>
+              <option value="Fitness">Fitness</option>
+              <option value="Learning">Learning</option>
+              <option value="Productivity">Productivity</option>
+              <option value="Social">Social</option>
+              <option value="Mindfulness">Mindfulness</option>
+            </select>
+          </div>
         </div>
+
         <div class="form-group">
           <label for="description">Description *</label>
           <textarea id="description" name="description" required rows="3" placeholder="e.g., 30 minutes of cardio every morning"></textarea>
         </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label for="frequency">Frequency</label>
+            <select id="frequency" name="frequency">
+              <option value="Daily">Daily</option>
+              <option value="Weekly">Weekly</option>
+              <option value="Bi-weekly">Bi-weekly</option>
+              <option value="Monthly">Monthly</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority">
+              <option value="Low">Low</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+              <option value="Active" selected>Active</option>
+              <option value="Paused">Paused</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label for="target_date">Target Date</label>
+            <input type="date" id="target_date" name="target_date" />
+          </div>
+          <div class="form-group">
+            <label for="streak">Current Streak (days)</label>
+            <input type="number" id="streak" name="streak" min="0" value="0" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" rows="2" placeholder="Additional notes or reminders..."></textarea>
+        </div>
+
         <div class="form-actions">
           <button type="submit" class="button primary" id="submit-btn">Create Habit</button>
           <button type="button" class="button ghost" id="cancel-btn" style="display: none;" onclick="cancelEdit()">Cancel</button>
@@ -56,7 +128,11 @@
             <tr>
               <th>ID</th>
               <th>Title</th>
-              <th>Description</th>
+              <th>Category</th>
+              <th>Frequency</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Streak</th>
               <th>Created</th>
               <th>Actions</th>
             </tr>
@@ -73,12 +149,82 @@
   </main>
 
   <footer class="footer">
-    <p>FocusFlow • Habit Tracker • Assignment 3 Part 2</p>
+    <p>FocusFlow • Habit Tracker • Assignment 4</p>
   </footer>
 
   <script>
+    let isAuthenticated = false;
+    let currentUsername = null;
+
+    // Check authentication status on page load
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/auth/status');
+        const data = await response.json();
+        
+        isAuthenticated = data.authenticated;
+        if (data.authenticated) {
+          currentUsername = data.user.username;
+          updateAuthUI(true);
+        } else {
+          updateAuthUI(false);
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+        updateAuthUI(false);
+      }
+    }
+
+    // Update UI based on authentication status
+    function updateAuthUI(authenticated) {
+      const authLinks = document.getElementById('auth-links');
+      const authRequiredMessage = document.getElementById('auth-required-message');
+      const form = document.getElementById('habit-form');
+      const editButtons = document.querySelectorAll('.edit-btn, .delete-btn');
+
+      if (authenticated) {
+        authLinks.innerHTML = `
+          <span style="color: var(--muted); margin-right: 8px;">Welcome, ${currentUsername}!</span>
+          <a href="#" id="logout-link">Logout</a>
+        `;
+        authRequiredMessage.style.display = 'none';
+        form.style.opacity = '1';
+        
+        // Add logout handler
+        document.getElementById('logout-link').addEventListener('click', async (e) => {
+          e.preventDefault();
+          await logout();
+        });
+      } else {
+        authLinks.innerHTML = '<a href="/login" id="login-link">Login</a>';
+        authRequiredMessage.style.display = 'block';
+        form.style.opacity = '0.6';
+      }
+    }
+
+    // Logout function
+    async function logout() {
+      try {
+        const response = await fetch('/api/logout', {
+          method: 'POST'
+        });
+
+        if (response.ok) {
+          isAuthenticated = false;
+          currentUsername = null;
+          updateAuthUI(false);
+          loadHabits(); // Reload habits to update action buttons
+          showMessage('Logged out successfully', 'success');
+        }
+      } catch (error) {
+        console.error('Error logging out:', error);
+        showMessage('Error logging out', 'error');
+      }
+    }
+
     // Load habits on page load
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      await checkAuth();
       loadHabits();
     });
 
@@ -86,9 +232,21 @@
     document.getElementById('habit-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       
+      if (!isAuthenticated) {
+        showMessage('Please login to create or update habits', 'error');
+        return;
+      }
+      
       const formData = {
         title: document.getElementById('title').value.trim(),
-        description: document.getElementById('description').value.trim()
+        description: document.getElementById('description').value.trim(),
+        category: document.getElementById('category').value,
+        frequency: document.getElementById('frequency').value,
+        priority: document.getElementById('priority').value,
+        status: document.getElementById('status').value,
+        target_date: document.getElementById('target_date').value || null,
+        streak: document.getElementById('streak').value,
+        notes: document.getElementById('notes').value.trim()
       };
 
       const habitId = document.getElementById('habit-id').value;
@@ -130,7 +288,12 @@
           showMessage('Habit saved successfully!', 'success');
         } else {
           const error = await response.json();
-          showMessage(error.error || 'Failed to save habit', 'error');
+          if (response.status === 401) {
+            showMessage('Authentication required. Please login.', 'error');
+            await checkAuth();
+          } else {
+            showMessage(error.error || 'Failed to save habit', 'error');
+          }
         }
       } catch (error) {
         console.error('Error:', error);
@@ -190,14 +353,29 @@
         ? new Date(habit.created_at).toLocaleDateString() 
         : 'N/A';
 
+      const category = habit.category || 'General';
+      const frequency = habit.frequency || 'Daily';
+      const priority = habit.priority || 'Medium';
+      const status = habit.status || 'Active';
+      const streak = habit.streak || 0;
+
+      // Priority badge color
+      const priorityClass = priority === 'High' ? 'high' : priority === 'Medium' ? 'medium' : 'low';
+      // Status badge color
+      const statusClass = status === 'Active' ? 'active' : status === 'Completed' ? 'completed' : 'paused';
+
       row.innerHTML = `
         <td>${habit.id}</td>
         <td><strong>${escapeHtml(habit.title)}</strong></td>
-        <td>${escapeHtml(habit.description)}</td>
+        <td>${escapeHtml(category)}</td>
+        <td>${escapeHtml(frequency)}</td>
+        <td><span class="badge badge-${priorityClass}">${escapeHtml(priority)}</span></td>
+        <td><span class="badge badge-${statusClass}">${escapeHtml(status)}</span></td>
+        <td>${streak} days</td>
         <td>${createdDate}</td>
         <td class="actions-cell">
-          <button class="button small edit-btn" onclick="editHabit(${habit.id})">Edit</button>
-          <button class="button small delete-btn" onclick="deleteHabit(${habit.id})">Delete</button>
+          <button class="button small edit-btn" onclick="editHabit(${habit.id})" ${!isAuthenticated ? 'disabled title="Login required"' : ''}>Edit</button>
+          <button class="button small delete-btn" onclick="deleteHabit(${habit.id})" ${!isAuthenticated ? 'disabled title="Login required"' : ''}>Delete</button>
         </td>
       `;
       
@@ -206,6 +384,11 @@
 
     // Edit a habit
     async function editHabit(id) {
+      if (!isAuthenticated) {
+        showMessage('Please login to edit habits', 'error');
+        return;
+      }
+
       try {
         const response = await fetch(`/api/habits/${id}`);
         if (!response.ok) {
@@ -215,8 +398,16 @@
         const habit = await response.json();
         
         document.getElementById('habit-id').value = habit.id;
-        document.getElementById('title').value = habit.title;
-        document.getElementById('description').value = habit.description;
+        document.getElementById('title').value = habit.title || '';
+        document.getElementById('description').value = habit.description || '';
+        document.getElementById('category').value = habit.category || 'General';
+        document.getElementById('frequency').value = habit.frequency || 'Daily';
+        document.getElementById('priority').value = habit.priority || 'Medium';
+        document.getElementById('status').value = habit.status || 'Active';
+        document.getElementById('target_date').value = habit.target_date ? habit.target_date.split('T')[0] : '';
+        document.getElementById('streak').value = habit.streak || 0;
+        document.getElementById('notes').value = habit.notes || '';
+        
         document.getElementById('form-title').textContent = 'Edit Habit';
         document.getElementById('submit-btn').textContent = 'Update Habit';
         document.getElementById('cancel-btn').style.display = 'inline-block';
@@ -240,6 +431,11 @@
 
     // Delete a habit
     async function deleteHabit(id) {
+      if (!isAuthenticated) {
+        showMessage('Please login to delete habits', 'error');
+        return;
+      }
+
       if (!confirm('Are you sure you want to delete this habit?')) {
         return;
       }
@@ -254,7 +450,12 @@
           showMessage('Habit deleted successfully!', 'success');
         } else {
           const error = await response.json();
-          showMessage(error.error || 'Failed to delete habit', 'error');
+          if (response.status === 401) {
+            showMessage('Authentication required. Please login.', 'error');
+            await checkAuth();
+          } else {
+            showMessage(error.error || 'Failed to delete habit', 'error');
+          }
         }
       } catch (error) {
         console.error('Error deleting habit:', error);
